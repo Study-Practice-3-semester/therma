@@ -1,0 +1,18 @@
+.PHONY: up down build-all run-front build-all
+
+up:
+	docker-compose up -d
+
+down:
+	docker-compose down
+
+run-front:
+	cd frontend && bun run dev
+
+run-back:
+	cd backend && ./gradlew bootRun
+
+build-all:
+	cd backend && ./gradlew build -x test
+	cd simulator && ./gradlew build -x test
+	cd frontend && bun run build
