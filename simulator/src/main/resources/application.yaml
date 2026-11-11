@@ -1,0 +1,11 @@
+server:
+  port: ${SIMULATOR_PORT:8081}
+
+spring:
+  task:
+    scheduling:
+      pool:
+        size: 2 # Пул потоков для @Scheduled задач (каждый каупер в своем потоке)
+
+simulator:
+  backend-url: ${BACKEND_URL:http://localhost:8080/api/v1}
