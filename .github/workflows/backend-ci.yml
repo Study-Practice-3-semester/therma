@@ -1,0 +1,63 @@
+name: Java Backend & Simulator CI
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'backend/**'
+      - 'simulator/**'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'backend/**'
+      - 'simulator/**'
+
+jobs:
+  build-and-test-backend:
+    name: Backend Build & Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java 25
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+          cache: 'gradle' 
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Build Backend
+        run: ./gradlew build --no-daemon
+
+  build-simulator:
+    name: Simulator Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./simulator
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java 25
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Build Simulator
+        run: ./gradlew build --no-daemon
