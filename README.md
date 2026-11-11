@@ -60,6 +60,17 @@ java -jar build/libs/backend-0.0.1-SNAPSHOT.jar
 ```bash
 ./gradlew bootRun --debug-jvm
 ```
+## Конфигурация
+Все настройки (`src/main/resources/application.yaml`) прописаны явно и совпадают с дефолтами в `docker-compose.yml`. Локальные переменные окружения (`.env`) на данном этапе не требуются.
+
+|**Параметр**|**Назначение**|**Дефолтное значение**|
+|---|---|---|
+|`server.port`|HTTP-порт Бэкенда|`8080`|
+|`server.port`|HTTP-порт Симулятора|`8081`|
+|`spring.datasource.url`|Подключение к PostgreSQL|`jdbc:postgresql://localhost:5432/hwstove_db`|
+|`spring.datasource.username`|Пользователь БД|`evraz_user`|
+|`spring.datasource.password`|Пароль БД|`evraz_password`|
+|`simulator.backend-url`|Куда симулятор шлет телеметрию|`http://localhost:8080/api/v1`|
 ## Тесты
 Запуск тестов в бэкенде:
 
