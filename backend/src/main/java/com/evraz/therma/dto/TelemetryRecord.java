@@ -2,11 +2,6 @@ package com.evraz.therma.dto;
 
 import java.time.Instant;
 
-/**
- * Унифицированная запись телеметрии.
- * Используется внутри системы (детектор, движок правил).
- * Маппится из TelemetryPoint (REST) и TelemetryMessage (STOMP).
- */
 public class TelemetryRecord {
     private String cowperId;
     private Instant recordedAt;

@@ -3,16 +3,9 @@ package com.evraz.therma.mapper;
 import com.evraz.therma.dto.*;
 import org.springframework.stereotype.Component;
 
-/**
- * Маппер между внешними форматами телеметрии (REST, STOMP)
- * и внутренним унифицированным форматом TelemetryRecord.
- */
 @Component
 public class TelemetryMapper {
 
-    /**
-     * Конвертация из REST-формата (TelemetryPoint) во внутренний формат.
-     */
     public TelemetryRecord fromRest(TelemetryPoint point) {
         if (point == null) {
             return null;
@@ -41,9 +34,6 @@ public class TelemetryMapper {
         return record;
     }
 
-    /**
-     * Конвертация из STOMP-формата (TelemetryMessage) во внутренний формат.
-     */
     public TelemetryRecord fromStomp(TelemetryMessage message) {
         if (message == null) {
             return null;

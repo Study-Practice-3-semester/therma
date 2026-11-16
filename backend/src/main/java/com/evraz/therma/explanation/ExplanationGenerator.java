@@ -6,19 +6,9 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Подсистема интерпретации (п. 5.4 задания).
- * Формирует понятные текстовые объяснения для каждой рекомендации.
- */
 @Component
 public class ExplanationGenerator {
 
-    /**
-     * Генерация объяснений для рекомендации.
-     * @param recommendation рекомендация
-     * @param record телеметрия, на основе которой сформирована рекомендация
-     * @return список строк с объяснениями
-     */
     public List<String> generate(Recommendation recommendation, TelemetryRecord record) {
         List<String> explanations = new ArrayList<>();
 
@@ -26,10 +16,8 @@ public class ExplanationGenerator {
             return explanations;
         }
 
-        // Общее объяснение
         explanations.add("Рекомендация сформирована на основе анализа телеметрии ВН " + record.getCowperId());
 
-        // Детализация по правилу
         if (recommendation.getRuleCode() != null) {
             explanations.add("Правило: " + formatRuleCode(recommendation.getRuleCode()));
         }
@@ -62,9 +50,6 @@ public class ExplanationGenerator {
         return explanations;
     }
 
-    /**
-     * Форматирование кода правила в читаемый вид.
-     */
     private String formatRuleCode(String ruleCode) {
         switch (ruleCode) {
             case "DHN_DOME_OVERHEAT":

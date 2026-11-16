@@ -7,11 +7,6 @@ import org.springframework.stereotype.Component;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
-/**
- * Модуль обработки нештатных ситуаций (п. 5.5 задания).
- * Отслеживает свежесть телеметрии и переводит систему в режим
- * "недостаточно данных" при обрывах связи или застывших показаниях.
- */
 @Component
 public class DataSufficiencyGuard {
 
@@ -24,14 +19,8 @@ public class DataSufficiencyGuard {
     private Instant lastTelemetryTimestamp;
     private Double lastDomeTemp;
 
-    /**
-     * Проверка достаточности данных.
-     * @param currentTimestamp время последней полученной телеметрии
-     * @param currentDomeTemp текущая температура купола
-     * @return статус системы (ACTIVE или INSUFFICIENT_DATA)
-     */
     public SystemStatus check(Instant currentTimestamp, Double currentDomeTemp) {
-        // Проверка обрыва связи (нет данных > staleThreshold)
+        // Проверка обрыва связи
         if (currentTimestamp == null) {
             if (lastTelemetryTimestamp != null) {
                 long minutesSinceLast = ChronoUnit.MINUTES.between(lastTelemetryTimestamp, Instant.now());
@@ -42,7 +31,7 @@ public class DataSufficiencyGuard {
             return SystemStatus.ACTIVE;
         }
 
-        // Проверка застывших показаний (температура не меняется > frozenThreshold)
+        // Проверка застывших показаний (температура не меняется)
         if (currentDomeTemp != null && lastDomeTemp != null) {
             if (currentDomeTemp.equals(lastDomeTemp)) {
                 if (lastTelemetryTimestamp != null) {
@@ -61,9 +50,6 @@ public class DataSufficiencyGuard {
         return SystemStatus.ACTIVE;
     }
 
-    /**
-     * Сброс состояния (при перезапуске симулятора).
-     */
     public void reset() {
         lastTelemetryTimestamp = null;
         lastDomeTemp = null;

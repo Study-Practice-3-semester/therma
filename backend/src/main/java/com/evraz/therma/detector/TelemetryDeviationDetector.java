@@ -8,11 +8,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Модуль контроля телеметрии (п. 5.2 задания).
- * Анализирует поступающие данные, выявляет отклонения от целевых режимов
- * и фиксирует выход за допустимые технологические границы.
- */
 @Component
 public class TelemetryDeviationDetector {
 
@@ -26,10 +21,6 @@ public class TelemetryDeviationDetector {
     private static final double AIR_GAS_RATIO_MIN = 1.1;
     private static final double AIR_GAS_RATIO_MAX = 1.4;
 
-    /**
-     * Проверка телеметрии на отклонения.
-     * Возвращает список событий отклонений (может быть пустым).
-     */
     public List<DeviationEvent> detect(TelemetryRecord record) {
         List<DeviationEvent> events = new ArrayList<>();
 
@@ -37,7 +28,7 @@ public class TelemetryDeviationDetector {
             return events;
         }
 
-        // Проверка температуры купола (правила DHN_DOME_OVERHEAT и WARN_DOME_APPROACH)
+        // Проверка температуры купола
         if (record.getDomeTemp() != null) {
             if (record.getDomeTemp() >= DOME_TEMP_CRITICAL) {
                 DeviationEvent event = new DeviationEvent();
@@ -63,7 +54,7 @@ public class TelemetryDeviationDetector {
             }
         }
 
-        // Проверка температуры дымовых газов (правило DHN_WASTE_OVERHEAT)
+        // Проверка температуры дымовых газов
         if (record.getWasteGasTemp() != null && record.getWasteGasTemp() >= WASTE_GAS_TEMP_CRITICAL) {
             DeviationEvent event = new DeviationEvent();
             event.setCowperId(record.getCowperId());
@@ -76,7 +67,7 @@ public class TelemetryDeviationDetector {
             events.add(event);
         }
 
-        // Проверка соотношения воздух/газ (правила WARN_AIR_DEFICIT и TWO_AIR_EXCESS)
+        // Проверка соотношения воздух/газ
         if (record.getAirGasRatio() != null) {
             if (record.getAirGasRatio() < AIR_GAS_RATIO_MIN) {
                 DeviationEvent event = new DeviationEvent();

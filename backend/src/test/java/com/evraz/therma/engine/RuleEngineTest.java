@@ -1,5 +1,6 @@
 package com.evraz.therma.engine;
 
+import com.evraz.therma.detector.TrendAnalyzer;
 import com.evraz.therma.dto.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,7 +17,9 @@ class RuleEngineTest {
 
     @BeforeEach
     void setUp() {
-        ruleEngine = new RuleEngine();
+        CombustionCalculator calc = new CombustionCalculator();
+        TrendAnalyzer trendAnalyzer = new TrendAnalyzer();
+        ruleEngine = new RuleEngine(calc, trendAnalyzer);
     }
 
     @Test

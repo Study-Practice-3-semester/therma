@@ -14,7 +14,6 @@ public class Recommendation {
     private ExpectedEffect expectedEffect;
     private List<String> reasoning;
 
-    // Getters and setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

@@ -13,7 +13,6 @@ public class TelemetryPoint {
     private Double natGasFlow;
     private Double combustionAirFlow;
 
-    // Getters and setters
     public String getCowperId() { return cowperId; }
     public void setCowperId(String cowperId) { this.cowperId = cowperId; }
 

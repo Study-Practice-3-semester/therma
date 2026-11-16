@@ -2,10 +2,6 @@ package com.evraz.therma.dto;
 
 import java.time.Instant;
 
-/**
- * Событие отклонения параметра от нормы.
- * Фиксируется детектором телеметрии (п. 5.2 задания).
- */
 public class DeviationEvent {
     private String cowperId;
     private Instant timestamp;
@@ -17,7 +13,6 @@ public class DeviationEvent {
     private Double targetMax;
     private Priority priority;
 
-    // Getters and setters
     public String getCowperId() { return cowperId; }
     public void setCowperId(String cowperId) { this.cowperId = cowperId; }
 
