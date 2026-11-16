@@ -1,0 +1,23 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: therma-business-logic
+  datasource:
+    url: jdbc:postgresql://localhost:5432/therma
+    username: therma
+    password: therma
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+telemetry:
+  stale-threshold-minutes: 3
+  frozen-threshold-minutes: 10
+  spike-threshold-celsius-per-minute: 50
