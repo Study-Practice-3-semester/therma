@@ -1,6 +1,5 @@
 package com.evraz.therma.engine;
 
-import com.evraz.therma.dto.TelemetryRecord;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -58,8 +57,18 @@ public class CombustionCalculator {
         double qMixed,
         double tauDut,
         double tauGas) {
-        double numerator = blastFlow * C_AIR * (hotBlastTemp - coldBlastTemp) * tauDut;
-        double denominator = qMixed * ETA_STOVE * tauGas;
+        if (qMixed <= 0 || tauGas <= 0) {
+            throw new IllegalArgumentException("Теплота сгорания (qMixed) и длительность нагрева (tauGas) должны быть > 0");
+        }
+        if (hotBlastTemp <= coldBlastTemp) {
+            return 0.0;
+        }
+
+        double blastFlowM3PerHour = blastFlow * 60.0;   // м³/мин -> м³/ч
+        double qMixedKjPerM3 = qMixed * 1000.0;         // МДж/м³ -> кДж/м³
+
+        double numerator = blastFlowM3PerHour * C_AIR * (hotBlastTemp - coldBlastTemp) * tauDut;
+        double denominator = qMixedKjPerM3 * ETA_STOVE * tauGas;
         return numerator / denominator;
     }
 
