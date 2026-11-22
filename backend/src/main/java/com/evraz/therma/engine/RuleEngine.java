@@ -397,10 +397,7 @@ public class RuleEngine {
         rec.setSuggestedValueMin(suggestedValueMin);
         rec.setSuggestedValueMax(suggestedValueMax);
 
-        ExpectedEffect effect = new ExpectedEffect();
-        effect.setTempDelta(tempDelta);
-        effect.setGasDelta(gasDelta);
-        rec.setExpectedEffect(effect);
+        rec.setExpectedEffect(new ExpectedEffect(tempDelta, gasDelta));
 
         return rec;
     }

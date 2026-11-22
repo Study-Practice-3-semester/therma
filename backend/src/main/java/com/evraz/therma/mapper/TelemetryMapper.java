@@ -1,62 +1,57 @@
 package com.evraz.therma.mapper;
 
-import com.evraz.therma.dto.*;
+import com.evraz.therma.dto.TelemetryPoint;
+import com.evraz.therma.dto.TelemetryRecord;
 import org.springframework.stereotype.Component;
 
 @Component
 public class TelemetryMapper {
 
-    public TelemetryRecord fromRest(TelemetryPoint point) {
+    public TelemetryRecord toRecord(TelemetryPoint point) {
         if (point == null) {
             return null;
         }
 
         TelemetryRecord record = new TelemetryRecord();
-        record.setCowperId(point.getCowperId());
-        record.setRecordedAt(point.getRecordedAt());
-        record.setPhase(point.getPhase());
-        record.setDomeTemp(point.getDomeTemp());
-        record.setHotBlastTemp(point.getHotBlastTemp());
-        record.setWasteGasTemp(point.getFlueGasTemp());
-        record.setBfGasFlow(point.getBfGasFlow());
-        record.setNatGasFlow(point.getNatGasFlow());
-        record.setCombustionAirFlow(point.getCombustionAirFlow());
+        record.setCowperId(point.cowperId());
+        record.setRecordedAt(point.recordedAt());
+        record.setPhase(point.phase());
 
-        // Расчёт air_gas_ratio из REST-полей
-        // TODO: согласовать формулу с командой
-        if (point.getCombustionAirFlow() != null && point.getBfGasFlow() != null && point.getNatGasFlow() != null) {
-            double totalGas = point.getBfGasFlow() + point.getNatGasFlow();
-            if (totalGas > 0) {
-                record.setAirGasRatio(point.getCombustionAirFlow() / totalGas);
-            }
+        record.setBlastFlow(point.blastFlow());
+        record.setColdBlastTemp(point.coldBlastTemp());
+        record.setHotBlastSetpoint(point.hotBlastSetpoint());
+        record.setHotBlastTemp(point.hotBlastTemp());
+        record.setMixingColdShare(point.mixingColdShare());
+        record.setStoveOutletTemp(point.stoveOutletTemp());
+
+        record.setBfGasFlow(point.bfGasFlow());
+        record.setNatGasFlow(point.natGasFlow());
+        record.setGasCalorific(point.gasCalorific());
+        record.setEnrichmentNg(point.enrichmentNg());
+        record.setGasPressure(point.gasPressure());
+
+        record.setAirFlow(point.combustionAirFlow());
+        record.setCombustionAirFlow(point.combustionAirFlow());
+
+        record.setDomeTemp(point.domeTemp());
+        record.setWasteGasTemp(point.flueGasTemp());
+        record.setFlueO2(point.flueO2());
+        record.setFlueCO(point.flueCO());
+
+        // Расход смешанного газа: берём явно заданный либо суммируем ДГ + ПГ
+        Double mixedGas = point.mixedGasFlow();
+        if (mixedGas == null && (point.bfGasFlow() != null || point.natGasFlow() != null)) {
+            double bf = point.bfGasFlow() != null ? point.bfGasFlow() : 0.0;
+            double nat = point.natGasFlow() != null ? point.natGasFlow() : 0.0;
+            mixedGas = bf + nat;
         }
+        record.setMixedGasFlow(mixedGas);
 
-        return record;
-    }
-
-    public TelemetryRecord fromStomp(TelemetryMessage message) {
-        if (message == null) {
-            return null;
-        }
-
-        TelemetryRecord record = new TelemetryRecord();
-        // TODO: cowperId и phase нужно брать из контекста подписки
-        record.setRecordedAt(message.getRecordedAt());
-        record.setDomeTemp(message.getDomeTemp());
-        record.setHotBlastTemp(message.getHotBlastTemp());
-        record.setWasteGasTemp(message.getFlueGasTemp());
-        record.setAirFlow(message.getAirFlow());
-        record.setCombustionAirFlow(message.getCombustionAirFlow());
-
-        // В STOMP gasFlow - это сумма bfGasFlow + natGasFlow
-        // TODO: уточнить у команды, как разделять
-        if (message.getGasFlow() != null) {
-            record.setMixedGasFlow(message.getGasFlow());
-        }
-
-        // Расчёт air_gas_ratio из STOMP-полей
-        if (message.getAirFlow() != null && message.getGasFlow() != null && message.getGasFlow() > 0) {
-            record.setAirGasRatio(message.getAirFlow() / message.getGasFlow());
+        // Соотношение воздух/газ: берём явно заданное либо вычисляем из расходов
+        if (point.airGasRatio() != null) {
+            record.setAirGasRatio(point.airGasRatio());
+        } else if (point.combustionAirFlow() != null && mixedGas != null && mixedGas > 0) {
+            record.setAirGasRatio(point.combustionAirFlow() / mixedGas);
         }
 
         return record;

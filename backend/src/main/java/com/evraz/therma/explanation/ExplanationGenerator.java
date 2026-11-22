@@ -191,11 +191,11 @@ public class ExplanationGenerator {
         if (effect == null) {
             return;
         }
-        if (effect.getTempDelta() != null && effect.getTempDelta() != 0.0) {
-            factors.add(String.format("Ожидаемое изменение температуры: %+.1f °C", effect.getTempDelta()));
+        if (effect.tempDelta() != null && effect.gasDelta() != 0.0) {
+            factors.add(String.format("Ожидаемое изменение температуры: %+.1f °C", effect.tempDelta()));
         }
-        if (effect.getGasDelta() != null && effect.getGasDelta() != 0.0) {
-            factors.add(String.format("Ожидаемое изменение расхода газа: %+.0f м³/ч", effect.getGasDelta()));
+        if (effect.tempDelta() != null && effect.gasDelta() != 0.0) {
+            factors.add(String.format("Ожидаемое изменение расхода газа: %+.0f м³/ч", effect.gasDelta()));
         }
     }
 
