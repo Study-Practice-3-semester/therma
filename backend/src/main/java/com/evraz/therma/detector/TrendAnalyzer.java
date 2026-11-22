@@ -8,6 +8,7 @@ import java.util.List;
 
 @Component
 public class TrendAnalyzer {
+    private static final double MIN_SPIKE_DELTA_CELSIUS = 15.0;
 
     public static class DataPoint {
         private final Instant timestamp;
@@ -67,13 +68,17 @@ public class TrendAnalyzer {
             DataPoint prev = points.get(i - 1);
             DataPoint curr = points.get(i);
 
+            double delta = Math.abs(curr.getValue() - prev.getValue());
+            if (delta < MIN_SPIKE_DELTA_CELSIUS) {
+                continue;
+            }
+
             double minutes = Duration.between(prev.getTimestamp(), curr.getTimestamp()).toMillis() / 60_000.0;
             if (minutes <= 0.0) {
                 continue;
             }
 
-            double rate = Math.abs(curr.getValue() - prev.getValue()) / minutes;
-            if (rate > thresholdCelsiusPerMin) {
+            if (delta / minutes > thresholdCelsiusPerMin) {
                 return true;
             }
         }
