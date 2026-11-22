@@ -1,5 +1,7 @@
 package com.evraz.therma.detector;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -10,17 +12,11 @@ import java.util.List;
 public class TrendAnalyzer {
     private static final double MIN_SPIKE_DELTA_CELSIUS = 15.0;
 
+    @Getter
+    @RequiredArgsConstructor
     public static class DataPoint {
         private final Instant timestamp;
         private final double value;
-
-        public DataPoint(Instant timestamp, double value) {
-            this.timestamp = timestamp;
-            this.value = value;
-        }
-
-        public Instant getTimestamp() { return timestamp; }
-        public double getValue() { return value; }
     }
 
     public double calculateRateOfChange(List<DataPoint> points) {

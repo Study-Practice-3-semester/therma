@@ -93,7 +93,7 @@ public class RuleEngine {
         }
 
         // 5. Разрешение конфликтов: R7 > Safety > R3 > R1 > R2 > R5 > R4 > R6 > прочие
-        recommendations.sort(Comparator.comparingInt(r -> getRuleRank(r.getRuleCode())));
+        recommendations.sort(Comparator.comparingInt(r -> getRuleRank(r.ruleCode())));
 
         return recommendations;
     }
@@ -386,18 +386,20 @@ public class RuleEngine {
         Double suggestedValueMin,
         Double suggestedValueMax) {
 
-        Recommendation rec = new Recommendation();
-        rec.setCowperId(record.getCowperId());
-        rec.setCreatedAt(Instant.now());
-        rec.setRuleCode(ruleCode.name());
-        rec.setPriority(priority);
-        rec.setStatus(RecommendationStatus.PENDING);
-        rec.setMessage(message);
-        rec.setTargetParameter(targetParameter);
-        rec.setSuggestedValueMin(suggestedValueMin);
-        rec.setSuggestedValueMax(suggestedValueMax);
-
-        rec.setExpectedEffect(new ExpectedEffect(tempDelta, gasDelta));
+        Recommendation rec = new Recommendation(
+            null,
+            record.getCowperId(),
+            Instant.now(),
+            ruleCode.name(),
+            message,
+            priority,
+            RecommendationStatus.PENDING,
+            new ExpectedEffect(tempDelta, gasDelta),
+            List.of(),
+            targetParameter,
+            suggestedValueMin,
+            suggestedValueMax
+        );
 
         return rec;
     }
@@ -410,7 +412,7 @@ public class RuleEngine {
 
     private boolean isRuleAlreadyPresent(List<Recommendation> recommendations, RuleCode ruleCode) {
         return ruleCode != null && recommendations.stream()
-            .anyMatch(r -> ruleCode.name().equals(r.getRuleCode()));
+            .anyMatch(r -> ruleCode.name().equals(r.ruleCode()));
     }
 
     private double resolveCurrentGasFlow(TelemetryRecord record) {

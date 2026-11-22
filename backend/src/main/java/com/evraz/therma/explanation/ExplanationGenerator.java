@@ -28,19 +28,19 @@ public class ExplanationGenerator {
             return explanations;
         }
 
-        String ruleCode = recommendation.getRuleCode();
+        String ruleCode = recommendation.ruleCode();
         explanations.add(String.format("Аппарат: %s | Правило: %s",
             record.getCowperId() != null ? record.getCowperId() : "не указан",
             formatRuleCode(ruleCode)));
 
-        // 1. Адресные параметры и пороги, вызвавшие срабатывание
+        // Адресные параметры и пороги, вызвавшие срабатывание
         appendTriggerFactors(explanations, ruleCode, record);
 
-        // 2. Рассчитанный диапазон управляющего воздействия
+        // Рассчитанный диапазон управляющего воздействия
         appendSuggestedRange(explanations, recommendation);
 
-        // 3. Прогнозируемый технологический эффект
-        appendExpectedEffect(explanations, recommendation.getExpectedEffect());
+        // Прогнозируемый технологический эффект
+        appendExpectedEffect(explanations, recommendation.expectedEffect());
 
         return explanations;
     }
@@ -166,9 +166,9 @@ public class ExplanationGenerator {
     }
 
     private void appendSuggestedRange(List<String> factors, Recommendation rec) {
-        String param = rec.getTargetParameter();
-        Double min = rec.getSuggestedValueMin();
-        Double max = rec.getSuggestedValueMax();
+        String param = rec.targetParameter();
+        Double min = rec.suggestedValueMin();
+        Double max = rec.suggestedValueMax();
 
         if (param == null || min == null || max == null) {
             return;

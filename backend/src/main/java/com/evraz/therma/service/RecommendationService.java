@@ -14,6 +14,7 @@ import com.evraz.therma.engine.RuleEngine;
 import com.evraz.therma.explanation.ExplanationGenerator;
 import com.evraz.therma.guard.DataSufficiencyGuard;
 import com.evraz.therma.mapper.TelemetryMapper;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 
+@RequiredArgsConstructor
 @Service
 public class RecommendationService {
 
@@ -34,21 +36,6 @@ public class RecommendationService {
     private final ExplanationGenerator explanationGenerator;
     private final DataSufficiencyGuard dataSufficiencyGuard;
     private final TelemetryHistoryProvider historyProvider;
-
-    public RecommendationService(
-        TelemetryMapper telemetryMapper,
-        TelemetryDeviationDetector deviationDetector,
-        RuleEngine ruleEngine,
-        ExplanationGenerator explanationGenerator,
-        DataSufficiencyGuard dataSufficiencyGuard,
-        TelemetryHistoryProvider historyProvider) {
-        this.telemetryMapper = telemetryMapper;
-        this.deviationDetector = deviationDetector;
-        this.ruleEngine = ruleEngine;
-        this.explanationGenerator = explanationGenerator;
-        this.dataSufficiencyGuard = dataSufficiencyGuard;
-        this.historyProvider = historyProvider;
-    }
 
     public List<Recommendation> processTelemetry(TelemetryPoint telemetryPoint) {
         TelemetryRecord record = telemetryMapper.toRecord(telemetryPoint);
@@ -71,15 +58,22 @@ public class RecommendationService {
             // Сбрасываем старый хвост буфера, чтобы после разрыва связи не считался ложный тренд
             historyProvider.clear(record.getCowperId());
 
-            Recommendation r7 = new Recommendation();
-            r7.setCowperId(record.getCowperId());
-            r7.setCreatedAt(Instant.now());
-            r7.setRuleCode(RuleCode.R7_INSUFFICIENT_DATA.name());
-            r7.setPriority(Priority.WARNING);
-            r7.setStatus(RecommendationStatus.PENDING);
-            r7.setMessage("Недостаточно данных для формирования рекомендации");
-            r7.setReasoning(explanationGenerator.generate(r7, record));
-            return List.of(r7);
+            Recommendation r7 = new Recommendation(
+                null,
+                record.getCowperId(),
+                Instant.now(),
+                RuleCode.R7_INSUFFICIENT_DATA.name(),
+                "Недостаточно данных для формирования рекомендации",
+                Priority.WARNING,
+                RecommendationStatus.PENDING,
+                null,
+                List.of(),
+                null,
+                null,
+                null
+            );
+
+            return List.of(r7.withReasoning(explanationGenerator.generate(r7, record)));
         }
 
         // Сохраняем валидную точку в окно трендов и извлекаем историю по текущему ВН
@@ -94,11 +88,9 @@ public class RecommendationService {
         );
 
         // Формирование адресных объяснений
-        for (Recommendation recommendation : recommendations) {
-            recommendation.setReasoning(explanationGenerator.generate(recommendation, record));
-        }
-
-        return recommendations;
+        return recommendations.stream()
+            .map(rec -> rec.withReasoning(explanationGenerator.generate(rec, record)))
+            .toList();
     }
 
     public SystemStatus getSystemStatus() {
@@ -115,12 +107,12 @@ public class RecommendationService {
         }
         for (Recommendation rec : recommendations) {
             log.info("Сформирована рекомендация: rule={}, priority={}, cowperId={}, target={} [{}..{}]",
-                rec.getRuleCode(),
-                rec.getPriority(),
-                rec.getCowperId(),
-                rec.getTargetParameter(),
-                rec.getSuggestedValueMin(),
-                rec.getSuggestedValueMax());
+                rec.ruleCode(),
+                rec.priority(),
+                rec.cowperId(),
+                rec.targetParameter(),
+                rec.suggestedValueMin(),
+                rec.suggestedValueMax());
         }
     }
 }
