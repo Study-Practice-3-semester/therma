@@ -13,6 +13,9 @@ public class Recommendation {
     private RecommendationStatus status;
     private ExpectedEffect expectedEffect;
     private List<String> reasoning;
+    private String targetParameter;
+    private Double suggestedValueMin;
+    private Double suggestedValueMax;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -40,4 +43,13 @@ public class Recommendation {
 
     public List<String> getReasoning() { return reasoning; }
     public void setReasoning(List<String> reasoning) { this.reasoning = reasoning; }
+
+    public String getTargetParameter() { return targetParameter; }
+    public void setTargetParameter(String targetParameter) { this.targetParameter = targetParameter; }
+
+    public Double getSuggestedValueMin() { return suggestedValueMin; }
+    public void setSuggestedValueMin(Double suggestedValueMin) { this.suggestedValueMin = suggestedValueMin; }
+
+    public Double getSuggestedValueMax() { return suggestedValueMax; }
+    public void setSuggestedValueMax(Double suggestedValueMax) { this.suggestedValueMax = suggestedValueMax; }
 }
