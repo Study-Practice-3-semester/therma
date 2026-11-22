@@ -12,6 +12,7 @@ public enum RuleCode {
 
     // Правила технологического режима
     INFO_BLAST_TEMP_DROP,   // горячее дутьё ниже уставки
+    SAFETY_GAS_PRESSURE,    // давление газа < 5 кПа (риск погасания)
 
     // Расширенные правила (R1-R7 из KB)
     R1_DOME_GROWING,        // купол растёт
