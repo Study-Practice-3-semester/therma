@@ -24,6 +24,7 @@ public class TelemetryRecord {
     private Double blastFlow;          // расход холодного дутья (м³/мин)
 
     // Расчётные
+    private Double gasPressure;        // давление газа перед горелкой (кПа)
     private Double airGasRatio;        // соотношение воздух/газ (α · L0)
     private Double gasCalorific;       // теплота сгорания газа (МДж/м³)
     private Double flueO2;             // O2 в дымах (%)
@@ -94,4 +95,7 @@ public class TelemetryRecord {
 
     public Double getEnrichmentNg() { return enrichmentNg; }
     public void setEnrichmentNg(Double enrichmentNg) { this.enrichmentNg = enrichmentNg; }
+
+    public Double getGasPressure() { return gasPressure; }
+    public void setGasPressure(Double gasPressure) { this.gasPressure = gasPressure; }
 }
