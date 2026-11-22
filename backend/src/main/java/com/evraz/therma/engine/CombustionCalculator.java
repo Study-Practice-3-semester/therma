@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 public class CombustionCalculator {
 
     // Типовые константы
+    private static final double DEFAULT_ENRICHMENT_NG_PCT = 3.0;
     private static final double C_AIR = 1.36;          // кДж/(м³·К), теплоёмкость воздуха
     private static final double C_PS = 1.52;           // кДж/(м³·К), теплоёмкость продуктов сгорания
     private static final double ETA_STOVE = 0.78;      // КПД воздухонагревателя
@@ -21,6 +22,17 @@ public class CombustionCalculator {
         }
         double x = enrichmentNgPct / 100.0;
         return x * Q_NG + (1 - x) * Q_DG;
+    }
+
+    public double resolveL0Mixed(Double enrichmentNgPct, Double gasCalorific) {
+        if (enrichmentNgPct != null) {
+            return calculateL0Mixed(enrichmentNgPct);
+        }
+        if (gasCalorific != null && gasCalorific > Q_DG) {
+            double x = Math.clamp((gasCalorific - Q_DG) / (Q_NG - Q_DG), 0.0, 1.0);
+            return x * L0_NG + (1.0 - x) * L0_DG;
+        }
+        return calculateL0Mixed(DEFAULT_ENRICHMENT_NG_PCT);
     }
 
     public double calculateL0Mixed(Double enrichmentNgPct) {
