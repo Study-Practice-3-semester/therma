@@ -2,9 +2,8 @@ package com.evraz.therma.detector;
 
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -31,8 +30,8 @@ public class TrendAnalyzer {
         DataPoint first = points.get(0);
         DataPoint last = points.get(points.size() - 1);
 
-        long minutes = ChronoUnit.MINUTES.between(first.getTimestamp(), last.getTimestamp());
-        if (minutes <= 0) {
+        double minutes = Duration.between(first.getTimestamp(), last.getTimestamp()).toMillis() / 60_000.0;
+        if (minutes <= 0.0) {
             return 0.0;
         }
 
@@ -45,13 +44,12 @@ public class TrendAnalyzer {
         }
 
         DataPoint last = points.get(points.size() - 1);
-        int frozenMinutes = 0;
+        double frozenMinutes = 0.0;
 
         for (int i = points.size() - 2; i >= 0; i--) {
             DataPoint prev = points.get(i);
             if (Math.abs(last.getValue() - prev.getValue()) <= tolerance) {
-                long mins = ChronoUnit.MINUTES.between(prev.getTimestamp(), last.getTimestamp());
-                frozenMinutes = (int) mins;
+                frozenMinutes = Duration.between(prev.getTimestamp(), last.getTimestamp()).toMillis() / 60_000.0;
             } else {
                 break;
             }
@@ -65,8 +63,22 @@ public class TrendAnalyzer {
             return false;
         }
 
-        double rate = Math.abs(calculateRateOfChange(points));
-        return rate > thresholdCelsiusPerMin;
+        for (int i = 1; i < points.size(); i++) {
+            DataPoint prev = points.get(i - 1);
+            DataPoint curr = points.get(i);
+
+            double minutes = Duration.between(prev.getTimestamp(), curr.getTimestamp()).toMillis() / 60_000.0;
+            if (minutes <= 0.0) {
+                continue;
+            }
+
+            double rate = Math.abs(curr.getValue() - prev.getValue()) / minutes;
+            if (rate > thresholdCelsiusPerMin) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public double forecast(List<DataPoint> points, int minutesAhead) {
