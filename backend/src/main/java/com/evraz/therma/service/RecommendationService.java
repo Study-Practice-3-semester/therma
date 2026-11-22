@@ -12,9 +12,6 @@ import com.evraz.therma.guard.DataSufficiencyGuard;
 import com.evraz.therma.mapper.TelemetryMapper;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Service
 public class RecommendationService {
 
@@ -49,8 +46,13 @@ public class RecommendationService {
 
 
     private List<Recommendation> processTelemetry(TelemetryRecord record) {
+        if (record == null) {
+            return List.of();
+        }
+
         // Проверка достаточности данных
-        SystemStatus status = dataSufficiencyGuard.check(
+        SystemStatus status = dataSufficiencyGuard.checkAndRecord(
+            record.getCowperId(),
             record.getRecordedAt(),
             record.getDomeTemp()
         );
@@ -87,7 +89,7 @@ public class RecommendationService {
     }
 
     public SystemStatus getSystemStatus() {
-        return dataSufficiencyGuard.check(null, null);
+        return dataSufficiencyGuard.getSystemStatus();
     }
 
     public void saveRecommendations(List<Recommendation> recommendations) {
