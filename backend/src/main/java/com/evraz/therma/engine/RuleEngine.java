@@ -69,7 +69,7 @@ public class RuleEngine {
 
         // 2. Правила фазы нагрева (HEATING)
         if (checkHeating) {
-            addIfPresent(recommendations, checkSafetyBlocks(record));
+            recommendations.addAll(checkSafetyBlocks(record));
             addIfPresent(recommendations, checkR3(record));
             addIfPresent(recommendations, checkR1(record, domeHistory));
             addIfPresent(recommendations, checkR2(record, wasteHistory));
@@ -120,31 +120,32 @@ public class RuleEngine {
     }
 
     // Блокировки безопасности (HEATING)
-    private Recommendation checkSafetyBlocks(TelemetryRecord record) {
+    private List<Recommendation> checkSafetyBlocks(TelemetryRecord record) {
+        List<Recommendation> blocks = new ArrayList<>();
         double currentGas = resolveCurrentGasFlow(record);
 
         if (record.getGasPressure() != null && record.getGasPressure() < GAS_PRESSURE_BLOCK) {
-            return createRecommendation(record, RuleCode.SAFETY_GAS_PRESSURE, Priority.CRITICAL,
+            blocks.add(createRecommendation(record, RuleCode.SAFETY_GAS_PRESSURE, Priority.CRITICAL,
                 String.format("Критически низкое давление газа (%.2f кПа < 5.0 кПа) — риск погасания горелки, блокировка нагрева",
                     record.getGasPressure()),
-                0.0, -currentGas, "mixed_gas_flow", 0.0, 0.0);
+                0.0, -currentGas, "mixed_gas_flow", 0.0, 0.0));
         }
 
         if (record.getWasteGasTemp() != null && record.getWasteGasTemp() > WASTE_GAS_BLOCK) {
-            return createRecommendation(record, RuleCode.DHN_WASTE_OVERHEAT, Priority.CRITICAL,
+            blocks.add(createRecommendation(record, RuleCode.DHN_WASTE_OVERHEAT, Priority.CRITICAL,
                 "Температура дымовых газов > 450 °C — немедленный перевод ВН в резерв",
-                -100.0, -currentGas, "mixed_gas_flow", 0.0, 0.0);
+                -100.0, -currentGas, "mixed_gas_flow", 0.0, 0.0));
         }
 
         if (record.getDomeTemp() != null && record.getDomeTemp() > DOME_TEMP_MAX) {
-            double minGas = clampGasFlow(currentGas * 0.85);
-            double maxGas = clampGasFlow(currentGas * 0.90);
-            return createRecommendation(record, RuleCode.DHN_DOME_OVERHEAT, Priority.CRITICAL,
+            double minGas = Math.clamp(currentGas * 0.85, GAS_FLOW_MIN, GAS_FLOW_MAX);
+            double maxGas = Math.clamp(currentGas * 0.90, GAS_FLOW_MIN, GAS_FLOW_MAX);
+            blocks.add(createRecommendation(record, RuleCode.DHN_DOME_OVERHEAT, Priority.CRITICAL,
                 "Температура купола > 1400 °C — риск разрушения огнеупора, снизить расход газа",
-                -80.0, maxGas - currentGas, "mixed_gas_flow", minGas, maxGas);
+                -80.0, maxGas - currentGas, "mixed_gas_flow", minGas, maxGas));
         }
 
-        return null;
+        return blocks;
     }
 
     // R1: купол > 1390 °C и растёт -> увеличить α на +0.05..+0.15 без изменения расхода газа
