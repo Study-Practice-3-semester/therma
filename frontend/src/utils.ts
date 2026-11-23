@@ -75,9 +75,21 @@ export function allRows(history: Record<string, TelemetryPoint[]>, ids: string[]
 }
 
 export function cowperLabel(id: string, name?: string): string {
+  if (/^VN-\d+$/i.test(id)) return id.toUpperCase();
   if (name) return name;
   const digits = id.match(/\d+/)?.[0];
   return digits ? `VN-${digits}` : id;
+}
+
+/** Прореживание точек перед передачей в Recharts: десятки тысяч SVG-узлов — главный источник лагов. */
+export function downsample<T>(rows: T[], max: number): T[] {
+  if (rows.length <= max) return rows;
+  const step = rows.length / max;
+  const out: T[] = [];
+  for (let i = 0; i < max; i += 1) {
+    out.push(rows[Math.min(rows.length - 1, Math.round(i * step))]);
+  }
+  return out;
 }
 
 export function latestPoint(points: TelemetryPoint[] | undefined): TelemetryPoint | undefined {

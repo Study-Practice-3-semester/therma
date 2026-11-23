@@ -110,17 +110,19 @@ export function MetricChart({
             }}
           />
           <Legend wrapperStyle={{ fontSize: 10 }} iconSize={8} />
-          {refs.map((r) => (
-            <ReferenceLine
-              key={`${r.label}-${r.y}`}
-              yAxisId={r.axis ?? 'left'}
-              y={r.y}
-              stroke={r.color}
-              strokeDasharray="6 4"
-              strokeOpacity={0.8}
-              label={{ value: r.label, fill: r.color, fontSize: 9, position: 'insideTopRight' }}
-            />
-          ))}
+          {refs
+            .filter((r) => hasRight || r.axis !== 'right')
+            .map((r) => (
+              <ReferenceLine
+                key={`${r.label}-${r.y}`}
+                yAxisId={r.axis ?? 'left'}
+                y={r.y}
+                stroke={r.color}
+                strokeDasharray="6 4"
+                strokeOpacity={0.8}
+                label={{ value: r.label, fill: r.color, fontSize: 9, position: 'insideTopRight' }}
+              />
+            ))}
           {series.map((s) => (
             <Line
               key={s.key}

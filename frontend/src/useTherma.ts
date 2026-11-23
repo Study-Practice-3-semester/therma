@@ -29,6 +29,25 @@ export function useTherma() {
   const [simRunning, setSimRunning] = useState(true);
   const [lastAlert, setLastAlert] = useState<Recommendation | null>(null);
 
+  const mergePoints = useCallback((incoming: TelemetryPoint[]) => {
+    if (!incoming?.length) return;
+    const byCowper: Record<string, TelemetryPoint[]> = {};
+    for (const raw of incoming) {
+      if (!raw?.cowperId) continue;
+      const p = normalizePoint(raw);
+      (byCowper[p.cowperId] ??= []).push(p);
+    }
+    setHistory((prev) => {
+      const next = { ...prev };
+      for (const [id, pts] of Object.entries(byCowper)) {
+        const arr = [...(next[id] ?? []), ...pts];
+        if (arr.length > MAX_POINTS) arr.splice(0, arr.length - MAX_POINTS);
+        next[id] = arr;
+      }
+      return next;
+    });
+  }, []);
+
   const appendPoint = useCallback((raw: TelemetryPoint) => {
     if (!raw?.cowperId) return;
     const p = normalizePoint(raw);
@@ -47,11 +66,12 @@ export function useTherma() {
         const list = await api.getCowpers();
         if (cancelled || !Array.isArray(list) || !list.length) return;
         setCowpers(list);
+        setSelected('ALL');
 
         const to = new Date();
         const from = new Date(to.getTime() - HISTORY_MINUTES * 60_000);
         const results = await Promise.allSettled(
-          list.map((c) => api.getTelemetry(c.id, from, to)),
+          list.map((c) => api.getTelemetry(c.id, from, to, 60)),
         );
         if (cancelled) return;
 
@@ -65,6 +85,8 @@ export function useTherma() {
         });
         if (total > 0) {
           setHistory(hist);
+          // реальные метрики пришли — демо-данные и демо-алерты больше не нужны
+          setRecommendations([]);
           setDemo(false);
         }
       } catch {
@@ -138,6 +160,39 @@ export function useTherma() {
       void client.deactivate();
     };
   }, [appendPoint]);
+
+  // Пока STOMP не подключён — тянем новые точки из /telemetry/next-tick.
+  useEffect(() => {
+    if (demo || !simRunning) return;
+    let cancelled = false;
+    let busy = false;
+    const tick = async () => {
+      if (busy) return;
+      busy = true;
+      try {
+        const res = await api.nextTick();
+        if (cancelled || !res) return;
+        mergePoints(res.points ?? []);
+        if (res.recommendations?.length) {
+          setRecommendations((prev) => {
+            const known = new Set(prev.map((r) => r.id));
+            const fresh = res.recommendations.filter((r) => !known.has(r.id));
+            return fresh.length ? [...fresh, ...prev].slice(0, 100) : prev;
+          });
+        }
+      } catch {
+        /* эндпоинта пока нет — просто ждём следующий тик */
+      } finally {
+        busy = false;
+      }
+    };
+    void tick();
+    const id = window.setInterval(tick, 3000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(id);
+    };
+  }, [demo, simRunning, mergePoints]);
 
   // Генератор демо-телеметрии, пока нет реального потока.
   useEffect(() => {

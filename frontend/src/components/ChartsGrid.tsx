@@ -1,8 +1,9 @@
+import { useMemo } from 'react';
 import { Box, SimpleGrid, Text } from '@mantine/core';
 import type { ChartRef, ChartSeries } from './MetricChart';
 import { MetricChart } from './MetricChart';
 import type { Cowper, Phase, SystemStatusValue, TelemetryPoint } from '../types';
-import { allRows, cowperLabel, latestPoint, singleRows } from '../utils';
+import { allRows, cowperLabel, downsample, latestPoint, singleRows } from '../utils';
 
 const COLORS = ['#4dabf7', '#51cf66', '#ffa94d', '#da77f2', '#f783ac', '#22b8cf'];
 
@@ -106,7 +107,13 @@ interface Props {
 
 export function ChartsGrid({ history, cowpers, selected, status, statusMessage }: Props) {
   const single = selected !== 'ALL';
-  const rows = single ? singleRows(history[selected]) : allRows(history, cowpers.map((c) => c.id));
+  // Recharts не тянет тысячи точек: режем окно до 220 (обзор) / 400 (один ВН) точек.
+  const rows = useMemo(() => {
+    const raw = single
+      ? singleRows(history[selected])
+      : allRows(history, cowpers.map((c) => c.id));
+    return downsample(raw, single ? 400 : 220);
+  }, [single, selected, history, cowpers]);
   const phase = single ? latestPoint(history[selected])?.phase : undefined;
 
   return (
@@ -114,20 +121,15 @@ export function ChartsGrid({ history, cowpers, selected, status, statusMessage }
       <SimpleGrid cols={{ base: 1, md: 2, xl: 3 }} spacing="sm" verticalSpacing="sm">
         {CHARTS.map((cfg) => {
           const active = !cfg.phase || !single || phase === cfg.phase;
+          // В режиме «Все» рисуем только основную метрику каждого ВН:
+          // 4 линии вместо 8 на график, иначе браузер захлёбывается SVG.
           const series: ChartSeries[] = single
             ? cfg.series.map((s) => ({ ...s, key: s.field }))
-            : cowpers.flatMap((c, idx) =>
-                cfg.series.map((s) => ({
-                  key: `${c.id}__${s.field}`,
-                  label:
-                    cfg.series.length > 1
-                      ? `${cowperLabel(c.id, c.name)} · ${s.label}`
-                      : cowperLabel(c.id, c.name),
-                  color: COLORS[idx % COLORS.length],
-                  dashed: s.dashed,
-                  axis: s.axis,
-                })),
-              );
+            : cowpers.map((c, idx) => ({
+                key: `${c.id}__${cfg.series[0].field}`,
+                label: cowperLabel(c.id, c.name),
+                color: COLORS[idx % COLORS.length],
+              }));
           return (
             <MetricChart
               key={cfg.title}
