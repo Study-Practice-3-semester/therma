@@ -4,6 +4,7 @@ import { MantineProvider } from '@mantine/core';
 import App from './App.tsx';
 
 import '@mantine/core/styles.css';
+import './app.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
